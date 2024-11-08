@@ -1,11 +1,26 @@
-validator my_first_validator {
+use aiken/collection/list
+use aiken/crypto.{VerificationKeyHash}
+use cardano/transaction.{OutputReference, Transaction}
+
+pub type Datum {
+  owner: VerificationKeyHash,
+}
+
+pub type Redeemer {
+  msg: ByteArray,
+}
+
+validator hello_world {
   spend(
-    _datum: Option<Data>,
-    _redeemer: Data,
-    _output_reference: Data,
-    _context: Data,
+    datum: Option<Datum>,
+    redeemer: Redeemer,
+    _own_ref: OutputReference,
+    self: Transaction,
   ) {
-    True
+    expect Some(Datum { owner }) = datum
+    let must_say_hello = redeemer.msg == "Hello, World!"
+    let must_be_signed = list.has(self.extra_signatories, owner)
+    must_say_hello && must_be_signed
   }
 
   else(_) {
